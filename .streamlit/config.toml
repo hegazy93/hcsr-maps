@@ -1,0 +1,18 @@
+[theme]
+base = "light"
+primaryColor = "#1565C0"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#EAF2FB"
+textColor = "#1F2937"
+
+[server]
+headless = true
+enableStaticServing = true      # serves the photos in ./static (needed for popups with pictures)
+maxUploadSize = 10
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+showSidebarNavigation = false

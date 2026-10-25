@@ -1,0 +1,17 @@
+# systemd service: keeps the maps app running and restarts it after a crash or reboot.
+# Copy to /etc/systemd/system/hcsr-maps.service, then:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now hcsr-maps
+[Unit]
+Description=HCSR interactive maps (Streamlit)
+After=network.target
+
+[Service]
+User=hcsr
+WorkingDirectory=/opt/hcsr_maps
+ExecStart=/opt/hcsr_maps/.venv/bin/streamlit run app.py --server.port 8501 --server.address 127.0.0.1
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+Put the client's photos for this map here.
+
+From the client's "all resources files.rar" for this corniche, copy the
+CONTENTS of its "images" folder into this folder (or copy the "images"
+folder itself in here - both work).
+
+File names can stay exactly as the client exported them, e.g.
+  C__Program Files_QGIS 3.22.5_map pictures_<name>.jpg   or   <name>.jpg
+
+After adding photos, restart the app (sudo systemctl restart hcsr-maps on the server).
