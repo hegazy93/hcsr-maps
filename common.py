@@ -6,6 +6,8 @@ Change a colour or font here and every map follows.
 """
 
 import base64
+import functools
+import unicodedata
 import json
 import math
 import os
@@ -188,22 +190,40 @@ PHOTO_WIDTH = 400
 
 
 def static_url(rel_path):
-    """URL of a file in ./static — works with or without a server.baseUrlPath."""
-    base = (st.get_option("server.baseUrlPath") or "").strip("/")
-    prefix = f"/{base}" if base else ""
-    return f"{prefix}/app/static/" + quote(rel_path.replace(os_path.sep, "/"))
+    """URL of a file in ./static, written relative to the map component's own address
+    (<app>/component/streamlit_folium.st_folium/index.html). '../../' therefore always lands
+    on the app's root, wherever the app is hosted: your computer, a server, or Streamlit
+    Community Cloud (which runs apps under a hidden sub-path, so '/app/static/' fails there)."""
+    return "../../app/static/" + quote(rel_path.replace(os_path.sep, "/"))
+
+
+def _norm(name):
+    """File-name key that ignores upper/lower case and how Arabic letters were encoded
+    (Linux servers are case-sensitive, Windows is not)."""
+    return unicodedata.normalize("NFC", name).casefold().strip()
+
+
+@functools.lru_cache(maxsize=None)
+def _photo_index(app):
+    """All photo files under static/photos/<app>/ (any sub-folder), by normalised name."""
+    index, root = {}, os_path.join(PHOTOS_DIR, app)
+    for folder, _dirs, files in os.walk(root):
+        for f in files:
+            rel = os_path.relpath(os_path.join(folder, f), STATIC_DIR)
+            index.setdefault(_norm(f), rel)
+    return index
 
 
 def photo_url(app, filename):
-    """Find a feature's photo in static/photos/<app>/ (or its 'images' sub-folder).
+    """Find a feature's photo in static/photos/<app>/ (or any sub-folder such as 'images').
     Photos are only downloaded when a popup is opened, so the map stays light."""
-    if not isinstance(filename, str) or not filename:
+    if not isinstance(filename, str) or not filename.strip():
         return None
-    for sub in ("", "images"):
-        for pattern in PHOTO_PATTERNS:
-            rel = os_path.join("photos", app, sub, pattern.format(filename))
-            if os_path.exists(os_path.join(STATIC_DIR, rel)):
-                return static_url(rel)
+    index = _photo_index(app)
+    for pattern in PHOTO_PATTERNS:
+        rel = index.get(_norm(pattern.format(filename.strip())))
+        if rel:
+            return static_url(rel)
     return None
 
 
